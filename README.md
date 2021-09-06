@@ -7,3 +7,10 @@ When you export all regions of your .vox file, MagicaVoxel doesn't keep the worl
 
 ![](img/img0.jpg)
 
+# Usage
+
+- You need to open a console (like cmd or Powershell in Windows)
+- Go to the emplacement of the binary
+- Launch the command : `./VoxExporter.exe --i [INPUT] --o [OUTPUT]`
+- [INPUT] refer to a vox filepath (mandatory)
+- [OUTPUT] refer to the destination path (mandatory)
