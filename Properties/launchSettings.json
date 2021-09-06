@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VoxExporter": {
+      "commandName": "Project",
+      "commandLineArgs": "--i test.vox --o test"
+    }
+  }
+}

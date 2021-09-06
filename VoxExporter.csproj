@@ -5,4 +5,17 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NDesk.Options" Version="0.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FileToVoxCommon">
+      <HintPath>lib\FileToVoxCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="FileToVoxCore">
+      <HintPath>lib\FileToVoxCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
