@@ -162,9 +162,7 @@ namespace VoxExporter
 		private int WriteChunks(BinaryWriter writer)
 		{
 			int byteWritten = 0;
-			int RGBA = WritePaletteChunk(writer);
 
-			int MATL = mModel.MaterialChunks.Sum(materialChunk => WriteMaterialChunk(writer, materialChunk, materialChunk.Id));
 
 			int SIZE = 0;
 			int XYZI = 0;
@@ -239,6 +237,9 @@ namespace VoxExporter
 				int max = mModel.TransformNodeChunks.Max(t => t.Id);
 				mainGroupIds.Add(max + (max % 2 == 0 ? 2 : 1) + mainGroupIds.Last());
 			}
+
+			int RGBA = WritePaletteChunk(writer);
+			int MATL = mModel.MaterialChunks.Sum(materialChunk => WriteMaterialChunk(writer, materialChunk, materialChunk.Id));
 
 			Console.WriteLine("[LOG] Written RGBA: " + RGBA);
 			Console.WriteLine("[LOG] Written MATL: " + MATL);
