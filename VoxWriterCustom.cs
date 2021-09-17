@@ -48,14 +48,15 @@ namespace VoxExporter
 					{
 						voxModel.VoxelFrames[shapeNodeChunk.Models[0].ModelId]
 					},
-					GroupNodeChunks = new List<GroupNodeChunk>()
+					GroupNodeChunks = new List<GroupNodeChunk>(),
+					PaletteColorIndex = voxModel.PaletteColorIndex
 				};
 
 				model.GroupNodeChunks.Add(new GroupNodeChunk()
 				{
 					Id = 1,
-					ChildIds = new []{2},
-					Attributes = new KeyValue[] {}
+					ChildIds = new[] { 2 },
+					Attributes = new KeyValue[] { }
 				});
 				result.Add(model);
 			}
@@ -88,7 +89,7 @@ namespace VoxExporter
 					}
 				}
 			}
-			
+
 
 			return true;
 		}
@@ -106,6 +107,7 @@ namespace VoxExporter
 			int chunkMATL = CountMaterialChunksize();
 			int chunkMnTRN = 40;
 			int chunkMnGRP = CountMainGroupChunkSize();
+			int chunkIMAP = CountIMAPChunkSize();
 
 			Console.WriteLine("[LOG] Chunk RGBA: " + chunkRGBA);
 			Console.WriteLine("[LOG] Chunk MATL: " + chunkMATL);
@@ -115,6 +117,7 @@ namespace VoxExporter
 			Console.WriteLine("[LOG] Chunk nSHP: " + chunknSHP);
 			Console.WriteLine("[LOG] Chunk MnTRN: " + chunkMnTRN);
 			Console.WriteLine("[LOG] Chunk MnGRP: " + chunkMnGRP);
+			Console.WriteLine("[LOG] Chunk IMAP: " + chunkIMAP);
 
 			int childrenChunkSize = chunkSIZE; //SIZE CHUNK
 			childrenChunkSize += chunkXYZI; //XYZI CHUNK
@@ -124,6 +127,7 @@ namespace VoxExporter
 			childrenChunkSize += chunkMATL;
 			childrenChunkSize += chunkMnTRN;
 			childrenChunkSize += chunkMnGRP;
+			childrenChunkSize += chunkIMAP;
 
 			return childrenChunkSize;
 		}
@@ -162,7 +166,6 @@ namespace VoxExporter
 		private int WriteChunks(BinaryWriter writer)
 		{
 			int byteWritten = 0;
-
 
 			int SIZE = 0;
 			int XYZI = 0;
@@ -240,6 +243,7 @@ namespace VoxExporter
 
 			int RGBA = WritePaletteChunk(writer);
 			int MATL = mModel.MaterialChunks.Sum(materialChunk => WriteMaterialChunk(writer, materialChunk, materialChunk.Id));
+			int IMAP = WriteIMAPChunk(writer);
 
 			Console.WriteLine("[LOG] Written RGBA: " + RGBA);
 			Console.WriteLine("[LOG] Written MATL: " + MATL);
@@ -250,8 +254,9 @@ namespace VoxExporter
 			Console.WriteLine("[LOG] Written nSHP: " + nSHP);
 			Console.WriteLine("[LOG] Written mnTRN: " + mnTRN);
 			Console.WriteLine("[LOG] Written mnGRP: " + mnGRP);
+			Console.WriteLine("[LOG] Written IMAP: " + IMAP);
 
-			byteWritten = RGBA + MATL + SIZE + XYZI + nGRP + nTRN + nSHP + mnTRN + mnGRP;
+			byteWritten = RGBA + MATL + SIZE + XYZI + nGRP + nTRN + nSHP + mnTRN + mnGRP + IMAP;
 			return byteWritten;
 		}
 
@@ -435,8 +440,9 @@ namespace VoxExporter
 				{
 					for (int x = 0; x < model.VoxelFrames[index].VoxelsWide; x++)
 					{
-						int PaletteIndex = model.VoxelFrames[index].Get(x, y, z);
-						Color color = model.Palette[PaletteIndex];
+						int paletteIndex = model.VoxelFrames[index].Get(x, y, z);
+						int finalPaletteIndex = mModel.PaletteColorIndex?.ToList().IndexOf(paletteIndex) + 1 ?? paletteIndex;
+						Color color = finalPaletteIndex >= model.Palette.Length ? Color.Empty: model.Palette[finalPaletteIndex];
 
 						if (color != Color.Empty)
 						{
@@ -444,13 +450,11 @@ namespace VoxExporter
 							writer.Write((byte)(y % model.VoxelFrames[index].VoxelsTall));
 							writer.Write((byte)(z % model.VoxelFrames[index].VoxelsDeep));
 
-							int i = mModel.Palette.ToList().IndexOf(color) + 1;
-							writer.Write((i != 0) ? (byte)i : (byte)1);
+							writer.Write((finalPaletteIndex != 0) ? (byte)finalPaletteIndex : (byte)1);
 							count++;
 
 							byteWritten += 4;
 						}
-
 					}
 				}
 			}
@@ -470,10 +474,19 @@ namespace VoxExporter
 			writer.Write(0);
 
 			byteCount += Encoding.UTF8.GetByteCount(RGBA) + 8;
-
 			for (int i = 0; i < mModel.Palette.Length; i++)
 			{
-				Color color = mModel.Palette[i];
+				Color color;
+				if (mModel.PaletteColorIndex != null)
+				{
+					color = i == 255 ? Color.Empty : mModel.Palette[mModel.PaletteColorIndex[i]];
+				}
+				else
+				{
+					color = i == 255 ? Color.Empty : mModel.Palette[i + 1];
+				}
+				//Color color = mModel.Palette[i];
+
 				writer.Write(color.R);
 				writer.Write(color.G);
 				writer.Write(color.B);
@@ -518,6 +531,25 @@ namespace VoxExporter
 				writer.Write(Encoding.UTF8.GetBytes(keyValue.Value));
 
 				byteWritten += 8 + Encoding.UTF8.GetByteCount(keyValue.Key) + Encoding.UTF8.GetByteCount(keyValue.Value);
+			}
+
+			return byteWritten;
+		}
+
+		private int WriteIMAPChunk(BinaryWriter writer)
+		{
+			int byteWritten = 0;
+
+			if (mModel.PaletteColorIndex != null)
+			{
+				writer.Write(Encoding.UTF8.GetBytes(IMAP));
+				byteWritten += Encoding.UTF8.GetByteCount(MATL);
+
+				foreach (int paletteIndex in mModel.PaletteColorIndex)
+				{
+					writer.Write((byte)paletteIndex);
+					byteWritten++;
+				}
 			}
 
 			return byteWritten;
@@ -622,6 +654,11 @@ namespace VoxExporter
 			byteWritten += 4;
 
 			return byteWritten;
+		}
+
+		private int CountIMAPChunkSize()
+		{
+			return mModel.PaletteColorIndex != null ? Encoding.UTF8.GetByteCount(IMAP) + 256 : 0;
 		}
 	}
 }

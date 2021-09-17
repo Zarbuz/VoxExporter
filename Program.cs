@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using NDesk.Options;
 using FileToVoxCore.Vox;
 
@@ -26,15 +27,23 @@ namespace VoxExporter
 			};
 
 			List<string> extra = options.Parse(args);
+			DisplayInformations();
 			CheckHelp(options, shopHelp);
 			CheckArguments(inputFile, outputFile);
 			ProcessFile(inputFile, outputFile, logs, debug);
 
 		}
 
+		private static void DisplayInformations()
+		{
+			Console.WriteLine("[INFO] VoxMerger v" + Assembly.GetExecutingAssembly().GetName().Version);
+			Console.WriteLine("[INFO] Author: @Zarbuz. Contact : https://twitter.com/Zarbuz");
+		}
+
 		private static void ProcessFile(string inputFile, string outputFile, bool logs, bool debug)
 		{
 			VoxReader reader = new VoxReader();
+
 			Console.WriteLine("[LOG] Started to load model: " + inputFile);
 			VoxModel model = reader.LoadModel(inputFile);
 
