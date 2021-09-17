@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="VoxWriterCustom.cs~RF54ae96df.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NDesk.Options" Version="0.2.1" />
   </ItemGroup>
 

@@ -441,8 +441,8 @@ namespace VoxExporter
 					for (int x = 0; x < model.VoxelFrames[index].VoxelsWide; x++)
 					{
 						int paletteIndex = model.VoxelFrames[index].Get(x, y, z);
-						paletteIndex = mModel.PaletteColorIndex?.ToList().IndexOf(paletteIndex) + 1 ?? paletteIndex;
-						Color color = model.Palette[paletteIndex];
+						int finalPaletteIndex = mModel.PaletteColorIndex?.ToList().IndexOf(paletteIndex) + 1 ?? paletteIndex;
+						Color color = finalPaletteIndex >= model.Palette.Length ? Color.Empty: model.Palette[finalPaletteIndex];
 
 						if (color != Color.Empty)
 						{
@@ -450,7 +450,7 @@ namespace VoxExporter
 							writer.Write((byte)(y % model.VoxelFrames[index].VoxelsTall));
 							writer.Write((byte)(z % model.VoxelFrames[index].VoxelsDeep));
 
-							writer.Write((paletteIndex != 0) ? (byte)paletteIndex : (byte)1);
+							writer.Write((finalPaletteIndex != 0) ? (byte)finalPaletteIndex : (byte)1);
 							count++;
 
 							byteWritten += 4;
