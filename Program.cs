@@ -1,10 +1,9 @@
-﻿using System;
+﻿using FileToVoxCore.Vox;
+using NDesk.Options;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using NDesk.Options;
-using FileToVoxCore.Vox;
 
 namespace VoxExporter
 {
