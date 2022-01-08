@@ -2,3 +2,5 @@
 bin/
 obj/
 Build/
+Properties/PublishProfiles/WindowsBuild.pubxml.user
+Properties/launchSettings.json

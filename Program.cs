@@ -44,7 +44,7 @@ namespace VoxExporter
 			VoxReader reader = new VoxReader();
 
 			Console.WriteLine("[LOG] Started to load model: " + inputFile);
-			VoxModel model = reader.LoadModel(inputFile);
+			VoxModel model = reader.LoadModel(inputFile, false, false, false, false);
 
 			VoxWriterCustom writer = new VoxWriterCustom();
 			outputFile = outputFile.Replace(".vox", "");

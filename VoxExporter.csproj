@@ -3,7 +3,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>1.1</Version>
+    <Version>1.2</Version>
+    <Authors>Zarbuz</Authors>
+    <PackageProjectUrl>https://github.com/Zarbuz/VoxExporter</PackageProjectUrl>
+    <Description>VoxExporter is a tool that export regions of a vox files into different vox files while keeping world positions</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FileToVoxCore" Version="1.0.6" />
+    <PackageReference Include="FileToVoxCore" Version="1.0.9.6" />
     <PackageReference Include="NDesk.Options" Version="0.2.1" />
   </ItemGroup>
 

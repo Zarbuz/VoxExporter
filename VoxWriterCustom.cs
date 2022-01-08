@@ -4,10 +4,10 @@ using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using FileToVoxCore.Drawing;
 
 namespace VoxExporter
 {
@@ -134,29 +134,7 @@ namespace VoxExporter
 
 		private int CountTotalBlocks()
 		{
-			int total = 0;
-
-			Color[] colorsPalette = mModel.Palette;
-			for (int j = 0; j < mModel.VoxelFrames.Count; j++)
-			{
-				VoxelData data = mModel.VoxelFrames[j];
-				for (int y = 0; y < data.VoxelsTall; y++)
-				{
-					for (int z = 0; z < data.VoxelsDeep; z++)
-					{
-						for (int x = 0; x < data.VoxelsWide; x++)
-						{
-							int indexColor = data.Get(x, y, z);
-							Color color = colorsPalette[indexColor];
-							if (color != Color.Empty)
-							{
-								total++;
-							}
-						}
-					}
-				}
-			}
-			return total;
+			return mModel.VoxelFrames.Sum(data => data.Colors.Count);
 		}
 
 		/// <summary>
@@ -428,34 +406,28 @@ namespace VoxExporter
 			writer.Write(Encoding.UTF8.GetBytes(XYZI));
 			//int testA = (model.VoxelFrames[index].Colors.Count(t => t != 0));
 			//int testB = model.VoxelFrames[index].Colors.Length;
-			writer.Write((model.VoxelFrames[index].Colors.Count(t => t != 0) * 4) + 4); //XYZI chunk size
+			writer.Write((model.VoxelFrames[index].Colors.Count * 4) + 4); //XYZI chunk size
 			writer.Write(0); //Child chunk size (constant)
-			writer.Write(model.VoxelFrames[index].Colors.Count(t => t != 0)); //Blocks count
+			writer.Write(model.VoxelFrames[index].Colors.Count); //Blocks count
 
 			byteWritten += Encoding.UTF8.GetByteCount(XYZI) + 12;
 			int count = 0;
-			for (int y = 0; y < model.VoxelFrames[index].VoxelsTall; y++)
+			foreach (KeyValuePair<int, byte> entry in model.VoxelFrames[index].Colors)
 			{
-				for (int z = 0; z < model.VoxelFrames[index].VoxelsDeep; z++)
+				int paletteIndex = entry.Value;
+				int finalPaletteIndex = mModel.PaletteColorIndex?.ToList().IndexOf(paletteIndex) + 1 ?? paletteIndex;
+				Color color = finalPaletteIndex >= model.Palette.Length ? Color.Empty : model.Palette[finalPaletteIndex];
+				model.VoxelFrames[index].Get3DPos(entry.Key, out int x, out int y, out int z);
+				if (color != Color.Empty)
 				{
-					for (int x = 0; x < model.VoxelFrames[index].VoxelsWide; x++)
-					{
-						int paletteIndex = model.VoxelFrames[index].Get(x, y, z);
-						int finalPaletteIndex = mModel.PaletteColorIndex?.ToList().IndexOf(paletteIndex) + 1 ?? paletteIndex;
-						Color color = finalPaletteIndex >= model.Palette.Length ? Color.Empty: model.Palette[finalPaletteIndex];
+					writer.Write((byte)(x % model.VoxelFrames[index].VoxelsWide));
+					writer.Write((byte)(y % model.VoxelFrames[index].VoxelsTall));
+					writer.Write((byte)(z % model.VoxelFrames[index].VoxelsDeep));
 
-						if (color != Color.Empty)
-						{
-							writer.Write((byte)(x % model.VoxelFrames[index].VoxelsWide));
-							writer.Write((byte)(y % model.VoxelFrames[index].VoxelsTall));
-							writer.Write((byte)(z % model.VoxelFrames[index].VoxelsDeep));
+					writer.Write((finalPaletteIndex != 0) ? (byte)finalPaletteIndex : (byte)1);
+					count++;
 
-							writer.Write((finalPaletteIndex != 0) ? (byte)finalPaletteIndex : (byte)1);
-							count++;
-
-							byteWritten += 4;
-						}
-					}
+					byteWritten += 4;
 				}
 			}
 
