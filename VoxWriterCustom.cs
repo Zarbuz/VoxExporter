@@ -1,4 +1,4 @@
-﻿using FileToVoxCore.Schematics.Tools;
+﻿using FileToVoxCore.Drawing;
 using FileToVoxCore.Utils;
 using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
@@ -7,19 +7,30 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using FileToVoxCore.Drawing;
+using Vector3 = FileToVoxCore.Schematics.Tools.Vector3;
 
 namespace VoxExporter
 {
 	public class VoxWriterCustom : VoxParser
 	{
+		#region Fields
+
 		private VoxModel mModel;
 		private int mTotalBlockCount;
+
+		#endregion
+
+		#region PublicMethods
+
 		public bool WriteModel(string absolutePath, VoxModel model)
 		{
 			List<VoxModel> list = GetVoxelModelsFromRegions(model);
 			return WriteVoxForEachTransforms(absolutePath, list);
 		}
+
+		#endregion
+
+		#region PrivateMethods
 
 		private List<VoxModel> GetVoxelModelsFromRegions(VoxModel voxModel)
 		{
@@ -173,6 +184,7 @@ namespace VoxExporter
 			List<int> mainGroupIds = new List<int>();
 			mainGroupIds.Add(2);
 
+
 			int mnGRP = WriteMainGroupChunk(writer, mModel.TransformNodeChunks.Select(t => t.Id).ToList());
 
 			Console.WriteLine("[LOG] Step [2/2]: Started to write nTRN, nGRP and nSHP chunks...");
@@ -297,7 +309,7 @@ namespace VoxExporter
 			string pos = worldPosition.X + " " + worldPosition.Y + " " + worldPosition.Z;
 
 			writer.Write(48 + Encoding.UTF8.GetByteCount(pos)
-							+ Encoding.UTF8.GetByteCount(Convert.ToString((byte)transformNode.RotationAt()))); //nTRN chunk size
+			                + Encoding.UTF8.GetByteCount(Convert.ToString((byte)transformNode.RotationAt()))); //nTRN chunk size
 			writer.Write(0); //nTRN child chunk size
 			writer.Write(id); //ID
 			writer.Write(0); //ReadDICT size for attributes (none)
@@ -632,5 +644,10 @@ namespace VoxExporter
 		{
 			return mModel.PaletteColorIndex != null ? Encoding.UTF8.GetByteCount(IMAP) + 256 : 0;
 		}
+
+		#endregion
+
+
+		
 	}
 }
